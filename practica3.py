@@ -7,24 +7,35 @@ def valida_nodo_en_grafo(grafo_lista, nodo):
 	'F'
     Ejemplo formato salida: 
         False'''
+
 def encuentra_camino(grafo_lista, nodo_ini, nodo_fin):
+    def dfs(grafo, nodo_actual, nodo_fin, visitados_aristas, camino):
+        if nodo_actual == nodo_fin:  # cuando llego al nodo final corto la funcion
+            return True
+        vertices, aristas = grafo  # desempaqueto el grafo 
+        aristas_con_nodo = [arista for arista in aristas if nodo_actual in arista]
+        
+        for arista in aristas_con_nodo:  # recorro la lista de aristas con el nodo actual
+            nodo_siguiente = arista[1] if arista[0] == nodo_actual else arista[0]
+            if arista not in visitados_aristas:
+                visitados_aristas.add(arista)  # añado la arista al conjunto de visitadas
+                camino.append(nodo_siguiente)  # añado el nodo siguiente al camino
+                if dfs(grafo, nodo_siguiente, nodo_fin, visitados_aristas, camino):  # llamo recursivamente a dfs con el nodo siguiente
+                    return True  # si la llamada recursiva retorna true, retorno true
+                camino.pop()  # si no se encuentra el nodo final, deshago la ult eleccion
+                visitados_aristas.remove(arista)  # elimino la arista del conjunto de visitadas
+        
+        return False  # retorno false si no se encuentra un camino valido
+
     vertices, aristas = grafo_lista
-    nodo = nodo_ini
-    camino = [nodo_ini]
-    visitados = set()
-    if (valida_nodo_en_grafo(grafo_lista,nodo_ini) and valida_nodo_en_grafo(grafo_lista,nodo_fin)):
-        while True:
-            aristas_con_nodo = [arista for arista in aristas if nodo in arista and arista not in visitados]
-            if not aristas_con_nodo:
-                break  # no quedan mas aristas para explorar
-            
-            arista_elegida = aristas_con_nodo[0] # agarro primer arista que contiene al nodo actual
-            visitados.add(arista_elegida) # recien aca actualizo visitados
-            
-            nodo = arista_elegida[1] if arista_elegida[0] == nodo else arista_elegida[0]
-            camino.append(nodo)
-    
-    return camino
+    if valida_nodo_en_grafo(grafo_lista, nodo_ini) and valida_nodo_en_grafo(grafo_lista, nodo_fin):  # verifico que los nodos existan en el grafo
+        visitados_aristas = set()  # inicializo un conjunto para almacenar las aristas visitadas
+        camino = [nodo_ini]  # inicio el camino con el nodo de inicio
+        if dfs(grafo_lista, nodo_ini, nodo_fin, visitados_aristas, camino):  # llamo a la funcion dfs
+            return camino  # si dfs retorna true, retorno el camino encontrado
+        else:
+            return []  # si no se encuentra un camino valido retorno una lista vacía
+    return []
     
     
     '''
@@ -71,31 +82,32 @@ def encuentra_camino_cerrado(grafo_lista, nodo):
     pass
 
 def encuentra_recorrido(grafo_lista, nodo_ini, nodo_fin):
+    def dfs(grafo, nodo_actual, nodo_fin, aristas_visitadas, recorrido):
+        if nodo_actual == nodo_fin:  #cuando llego a nodo final corto la funcion
+            return True
+        vertices, aristas = grafo
+        #reviso que no se puedan repetir aristas
+        aristas_con_nodo = [arista for arista in aristas if nodo_actual in arista and arista not in aristas_visitadas]
+        
+        for arista in aristas_con_nodo:
+            nodo_siguiente = arista[1] if arista[0] == nodo_actual else arista[0]
+            aristas_visitadas.add(arista)
+            recorrido.append(nodo_siguiente)
+            if dfs(grafo, nodo_siguiente, nodo_fin, aristas_visitadas, recorrido):
+                return True
+            recorrido.pop()  #deshago eleccion si no llega a nodo final
+            aristas_visitadas.remove(arista)
+        return False
+
     vertices, aristas = grafo_lista
-    nodo = nodo_ini
-    recorrido = [nodo_ini]
-    visitados = set()
-    
-    if (valida_nodo_en_grafo(grafo_lista, nodo_ini) and valida_nodo_en_grafo(grafo_lista, nodo_fin)):
-        while True:
-            aristas_con_nodo = [arista for arista in aristas if nodo in arista and arista not in visitados]
-            if not aristas_con_nodo:
-                break  # no quedan más aristas para explorar
-            
-            arista_elegida = aristas_con_nodo[0]
-            visitados.add(arista_elegida)
-            
-            nodo = arista_elegida[1] if arista_elegida[0] == nodo else arista_elegida[0]
-            if nodo == nodo_fin:
-                recorrido.append(nodo)
-                break  # se termina el recorrido
-            elif nodo in recorrido:
-                # si el nodo ya está en el recorrido se corta el while
-                break
-            else:
-                recorrido.append(nodo)
-    
-    return recorrido
+    if valida_nodo_en_grafo(grafo_lista, nodo_ini) and valida_nodo_en_grafo(grafo_lista, nodo_fin):
+        aristas_visitadas = set()
+        recorrido = [nodo_ini]
+        if dfs(grafo_lista, nodo_ini, nodo_fin, aristas_visitadas, recorrido):
+            return recorrido
+        else:
+            return []  # no se encontro un recorrido 
+    return []  
 
     '''
     Ejemplo Entrada: 
@@ -138,31 +150,35 @@ def encuentra_circuito(grafo_lista, nodo):
     pass 	 	
 
 def encuentra_camino_simple(grafo_lista, nodo_ini, nodo_fin):
+    def dfs(grafo, nodo_actual, nodo_fin, visitados_aristas, visitados_nodos, camino):
+        if nodo_actual == nodo_fin:  # cuando llego a nodo final coto la funcion
+            return True
+        visitados_nodos.add(nodo_actual)  # añado nodo actual a los visitados
+        vertices, aristas = grafo
+        aristas_con_nodo = [arista for arista in aristas if nodo_actual in arista and arista not in visitados_aristas]
+        
+        for arista in aristas_con_nodo:
+            nodo_siguiente = arista[1] if arista[0] == nodo_actual else arista[0]
+            if nodo_siguiente not in visitados_nodos:
+                visitados_aristas.add(arista)
+                camino.append(nodo_siguiente)
+                if dfs(grafo, nodo_siguiente, nodo_fin, visitados_aristas, visitados_nodos, camino):
+                    return True
+                camino.pop()  # deshacer eleccion si no llego a nodo final
+                visitados_aristas.remove(arista)
+        visitados_nodos.remove(nodo_actual)
+        return False
+
     vertices, aristas = grafo_lista
-    nodo = nodo_ini
-    camino = [nodo_ini]
-    visitados = set()
-    
-    if (valida_nodo_en_grafo(grafo_lista, nodo_ini) and valida_nodo_en_grafo(grafo_lista, nodo_fin)):
-        while True:
-            aristas_con_nodo = [arista for arista in aristas if nodo in arista and arista not in visitados]
-            if not aristas_con_nodo:
-                break  # no quedan mas aristas para explorar
-            
-            arista_elegida = aristas_con_nodo[0]
-            visitados.add(arista_elegida)
-            
-            nodo = arista_elegida[1] if arista_elegida[0] == nodo else arista_elegida[0]
-            if nodo == nodo_fin:
-                camino.append(nodo)
-                break  #  llegue al nodo final, se termina el camino
-            elif nodo in camino:
-                # no puedo repetir nodo
-                break
-            else:
-                camino.append(nodo)
-    
-    return camino
+    if valida_nodo_en_grafo(grafo_lista, nodo_ini) and valida_nodo_en_grafo(grafo_lista, nodo_fin):
+        visitados_aristas = set()
+        visitados_nodos = set()
+        camino = [nodo_ini]
+        if dfs(grafo_lista, nodo_ini, nodo_fin, visitados_aristas, visitados_nodos, camino):
+            return camino
+        else:
+            return []  # no hay camino valido
+    return []  
     '''
     Ejemplo Entrada: 
       
